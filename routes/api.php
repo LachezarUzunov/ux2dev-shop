@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Middleware\IdempotencyMiddleware;
+use App\Http\Middleware\PartnerAuthMiddleware;
 
 
 /*
@@ -24,5 +25,5 @@ use App\Http\Middleware\IdempotencyMiddleware;
 ########################
 //Route::middleware(['auth:sanctum', 'verified'])->prefix('/v1')->group(function () {
 Route::prefix('/v1')->group(function () {
-    Route::post('/orders', [OrderController::class, 'store'])->middleware([IdempotencyMiddleware::class]);
+    Route::post('/orders', [OrderController::class, 'store'])->middleware([PartnerAuthMiddleware::class, IdempotencyMiddleware::class]);
 });
