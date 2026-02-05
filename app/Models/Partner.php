@@ -23,4 +23,9 @@ class Partner extends Model
     {
         return $this->hasMany(PartnerKey::class);
     }
+
+    public function idempotencyKeys(): HasMany
+    {
+        return $this->hasMany(IdempotencyKey::class);
+    }
 }

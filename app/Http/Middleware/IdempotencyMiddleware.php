@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\IdempotencyService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +21,7 @@ class IdempotencyMiddleware
             return response()->json(['error' => 'Idempotency Key Missing'],400);
         }
 
-       // return app()
-        return $next($request);
+        return app(IdempotencyService::class)
+            ->handle($request, $key, $next);
     }
 }
