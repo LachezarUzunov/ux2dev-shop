@@ -26,7 +26,7 @@ class GlobalRateLimitMiddleware
             $capacity,
             RefillRatesEnum::Global->value
         );
-        logger($result);
+
         if (! $result['ok']) {
             return response()->json([
                 'error' => 'Global rate limit exceeded'

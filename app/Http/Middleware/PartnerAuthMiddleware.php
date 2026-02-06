@@ -79,7 +79,6 @@ class PartnerAuthMiddleware
         $parsed = json_decode($request->getContent(), true);
 
         $canonical = json_encode($parsed, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
         $bodyHash = hash('sha256', $canonical);
 
         $base =

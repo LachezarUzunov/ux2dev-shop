@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -14,12 +15,20 @@ class OrderController extends Controller
     {
         $start = microtime(true);
 
-        $order = Order::create([
-            'partner_id'            => $request->attributes->get('partner')->id,
-            'external_order_id'     => $request->externalOrderId,
-            'amount'                => $request->amount,
-            'details'               => $request->details,
-        ]);
+        $order = retry(3, function () use ($request) {
+
+            return DB::transaction(function () use ($request) {
+
+                return Order::create([
+                    'partner_id'        => $request->attributes->get('partner')->id,
+                    'external_order_id' => $request->externalOrderId,
+                    'amount'            => $request->amount,
+                    'details'           => $request->details,
+                ]);
+
+            });
+
+        }, 100);
 
         $durationMs = (int)((microtime(true) - $start) * 1000);
 
