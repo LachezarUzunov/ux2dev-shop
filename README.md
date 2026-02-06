@@ -1,4 +1,4 @@
-## Public Partner Orders API — Design Summary
+# Public Partner Orders API — Design Summary
 
 # Idempotency
 * Required Idempotency-Key header
