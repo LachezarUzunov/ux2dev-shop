@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Middleware\IdempotencyMiddleware;
 use App\Http\Middleware\PartnerAuthMiddleware;
-
+use App\Http\Middleware\IpRateLimitMiddleware;
+use App\Http\Middleware\GlobalRateLimitMiddleware;
+use App\Http\Middleware\PartnerRateLimitMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,14 +18,6 @@ use App\Http\Middleware\PartnerAuthMiddleware;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-# Include auth routes
-//include __DIR__ . '/auth.php';
-
-########################
-## Authorized routes ###
-########################
-//Route::middleware(['auth:sanctum', 'verified'])->prefix('/v1')->group(function () {
-Route::prefix('/v1')->group(function () {
-    Route::post('/orders', [OrderController::class, 'store'])->middleware([PartnerAuthMiddleware::class, IdempotencyMiddleware::class]);
+Route::middleware([GlobalRateLimitMiddleware::class,IpRateLimitMiddleware::class, PartnerAuthMiddleware::class, PartnerRateLimitMiddleware::class, IdempotencyMiddleware::class])->prefix('/v1')->group(function () {
+    Route::post('/orders', [OrderController::class, 'store']);
 });
