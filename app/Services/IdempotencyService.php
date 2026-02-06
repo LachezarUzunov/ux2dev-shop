@@ -24,8 +24,15 @@ class IdempotencyService
         return $lock->block(5, function () use ($request, $key, $hash, $partnerId, $next) {
             $record = IdempotencyKey::wherePartnerId($partnerId)->whereIdempotencyKey($key)->first();
 
-            if ($record)
+            if ($record) {
+
+                logger()->info('idempotency_replay', [
+                    'partner_id' => $partnerId,
+                    'idempotency_key' => $key,
+                ]);
+
                 return $this->handleFoundKey($record, $hash);
+            }
 
             $response = $next($request);
             $this->createIdempotencyKey($key, $hash, $response);
@@ -47,9 +54,8 @@ class IdempotencyService
 
     protected function handleFoundKey($record, $hash)
     {
-        if ($record->request_hash !== $hash) {
+        if ($record->request_hash !== $hash)
             abort(409, 'Same idempotency key used with different payload.');
-        }
 
         return response()->json(
             json_decode($record->response_body, true),

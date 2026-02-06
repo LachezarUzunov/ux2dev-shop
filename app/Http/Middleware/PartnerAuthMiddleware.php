@@ -24,15 +24,25 @@ class PartnerAuthMiddleware
             return response()->json(['error' => 'Auth Headers Missing'], 401);
         }
 
-        # Replay protection
-        if (abs(time() - (int)$timestamp) > 300) {
-            return response()->json(['error' => 'Timestamp Expired'], 401);
-        }
-
         $prefix = substr($apiKey, 0, 8);
         $key = PartnerKey::whereKeyPrefix($prefix)->first();
 
+        # Replay protection
+        if (abs(time() - (int)$timestamp) > 300) {
+
+            logger()->warning('request_timestamp_expired', [
+                'api_key_prefix' => $prefix,
+            ]);
+
+            return response()->json(['error' => 'Timestamp Expired'], 401);
+        }
+
         if (!$key || !hash_equals($key->key_hash, hash('sha256', $apiKey))) {
+
+            logger()->warning('api_key_invalid', [
+                'prefix' => $prefix,
+            ]);
+
             return response()->json(['error' => 'Invalid API Key'], 401);
         }
 
@@ -41,11 +51,24 @@ class PartnerAuthMiddleware
         }
 
         if (!$this->verifySignature($request, $timestamp, $signature, $key)) {
+
+            logger()->warning('signature_invalid', [
+                'partner_id' => $key->partner->id,
+            ]);
+
             return response()->json(['error' => 'Invalid Signature'], 401);
         }
 
         $request->attributes->set('partner', $key->partner);
         $request->attributes->set('partnerKey', $key);
+
+        logger()->withContext([
+            'partner_id' => $key->partner->id,
+        ]);
+
+        logger()->info('partner_authenticated', [
+            'partner_id' => $key->partner->id,
+        ]);
 
         return $next($request);
     }

@@ -29,6 +29,12 @@ class IpRateLimitMiddleware
         );
 
         if (! $result['ok']) {
+
+            logger()->warning('rate_limit_exceeded', [
+                'scope' => 'ip',
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json([
                 'error' => 'IP rate limit exceeded'
             ], 429)->withHeaders([
